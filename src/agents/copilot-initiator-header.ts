@@ -1,4 +1,5 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
+import { log } from "./pi-embedded-runner/logger.js";
 
 export class CopilotInitiatorTracker {
   #firstCallMade = new Set<string>();
@@ -28,6 +29,7 @@ export function createCopilotAwareStream(
     if (provider === "github-copilot") {
       const initiator = tracker.getInitiator(sessionId);
       headers["X-Initiator"] = initiator;
+      log.debug(`copilot x-initiator: sessionId=${sessionId} initiator=${initiator}`);
     }
 
     return originalStreamSimple(model, context, { ...options, headers });
