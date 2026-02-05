@@ -22,11 +22,12 @@ export function createCopilotAwareStream(
   sessionId: string,
   tracker: CopilotInitiatorTracker,
   originalStreamSimple: StreamFn,
+  config?: { disableInitiatorHeader?: boolean },
 ): StreamFn {
   return async function streamWithInitiatorHeader(model, context, options) {
     const headers = { ...options?.headers };
 
-    if (provider === "github-copilot") {
+    if (provider === "github-copilot" && !config?.disableInitiatorHeader) {
       const initiator = tracker.getInitiator(sessionId);
       headers["X-Initiator"] = initiator;
       log.debug(`copilot x-initiator: sessionId=${sessionId} initiator=${initiator}`);
