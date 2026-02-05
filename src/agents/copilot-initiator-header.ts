@@ -1,3 +1,5 @@
+import type { StreamFn } from "@mariozechner/pi-ai";
+
 export class CopilotInitiatorTracker {
   #firstCallMade = new Set<string>();
 
@@ -12,6 +14,24 @@ export class CopilotInitiatorTracker {
   reset(sessionId: string): void {
     this.#firstCallMade.delete(sessionId);
   }
+}
+
+export function createCopilotAwareStream(
+  provider: string,
+  sessionId: string,
+  tracker: CopilotInitiatorTracker,
+  originalStreamSimple: StreamFn,
+): StreamFn {
+  return async function streamWithInitiatorHeader(model, options) {
+    const headers = { ...options?.headers };
+
+    if (provider === "github-copilot") {
+      const initiator = tracker.getInitiator(sessionId);
+      headers["X-Initiator"] = initiator;
+    }
+
+    return originalStreamSimple(model, { ...options, headers });
+  };
 }
 
 export const copilotInitiatorTracker = new CopilotInitiatorTracker();

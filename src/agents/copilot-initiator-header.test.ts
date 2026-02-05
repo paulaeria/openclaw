@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { CopilotInitiatorTracker } from "./copilot-initiator-header.js";
+import type { StreamFn } from "@mariozechner/pi-ai";
+import { AssistantMessageEventStream } from "@mariozechner/pi-ai";
+import { describe, expect, it, vi } from "vitest";
+import { CopilotInitiatorTracker, createCopilotAwareStream } from "./copilot-initiator-header.js";
 
 describe("CopilotInitiatorTracker", () => {
   it("should return 'user' on first call for a session", () => {
@@ -43,5 +45,107 @@ describe("CopilotInitiatorTracker", () => {
 
     // After reset, first call should return 'user' again
     expect(tracker.getInitiator(sessionId)).toBe("user");
+  });
+});
+
+describe("createCopilotAwareStream", () => {
+  it("should inject X-Initiator: user header for first Copilot call", async () => {
+    const tracker = new CopilotInitiatorTracker();
+    const sessionId = "test-session-1";
+
+    let capturedHeaders: Record<string, string> | undefined;
+    const mockStream: StreamFn = vi.fn().mockImplementation(async (model, options) => {
+      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      return new AssistantMessageEventStream(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: "assistantText", text: "test" });
+            controller.close();
+          },
+        }),
+      );
+    });
+
+    const wrappedStream = createCopilotAwareStream(
+      "github-copilot",
+      sessionId,
+      tracker,
+      mockStream,
+    );
+
+    await wrappedStream("gpt-4", {});
+
+    expect(capturedHeaders).toBeDefined();
+    expect(capturedHeaders?.["X-Initiator"]).toBe("user");
+  });
+
+  it("should inject X-Initiator: agent header for subsequent Copilot calls", async () => {
+    const tracker = new CopilotInitiatorTracker();
+    const sessionId = "test-session-2";
+
+    const mockStream: StreamFn = vi.fn().mockImplementation(async (model, options) => {
+      return new AssistantMessageEventStream(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: "assistantText", text: "test" });
+            controller.close();
+          },
+        }),
+      );
+    });
+
+    const wrappedStream = createCopilotAwareStream(
+      "github-copilot",
+      sessionId,
+      tracker,
+      mockStream,
+    );
+
+    // First call
+    await wrappedStream("gpt-4", {});
+
+    // Second call should get initiator="agent"
+    let capturedHeaders: Record<string, string> | undefined;
+    vi.mocked(mockStream).mockImplementationOnce(async (model, options) => {
+      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      return new AssistantMessageEventStream(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: "assistantText", text: "test" });
+            controller.close();
+          },
+        }),
+      );
+    });
+
+    await wrappedStream("gpt-4", {});
+
+    expect(capturedHeaders).toBeDefined();
+    expect(capturedHeaders?.["X-Initiator"]).toBe("agent");
+  });
+
+  it("should not inject header for non-Copilot providers", async () => {
+    const tracker = new CopilotInitiatorTracker();
+    const sessionId = "test-session-3";
+
+    let capturedHeaders: Record<string, string> | undefined;
+    const mockStream: StreamFn = vi.fn().mockImplementation(async (model, options) => {
+      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      return new AssistantMessageEventStream(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: "assistantText", text: "test" });
+            controller.close();
+          },
+        }),
+      );
+    });
+
+    const wrappedStream = createCopilotAwareStream("anthropic", sessionId, tracker, mockStream);
+
+    await wrappedStream("claude-3-5-sonnet", {});
+
+    expect(capturedHeaders).toBeDefined();
+    expect(capturedHeaders?.["X-Initiator"]).toBeUndefined();
   });
 });
