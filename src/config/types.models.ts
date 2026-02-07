@@ -50,6 +50,8 @@ export type ModelProviderConfig = {
   authHeader?: boolean;
   models: ModelDefinitionConfig[];
   disableInitiatorHeader?: boolean;
+  /** Auto-reset X-Initiator to "user" after N agent calls (0 = disabled, default: 50) */
+  agentMessageResetThreshold?: number;
 };
 
 export type BedrockDiscoveryConfig = {

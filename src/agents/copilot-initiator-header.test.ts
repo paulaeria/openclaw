@@ -76,7 +76,7 @@ describe("createCopilotAwareStream", () => {
 
     let capturedHeaders: Record<string, string> | undefined;
     const mockStream: StreamFn = vi.fn().mockImplementation(async (_model, _context, options) => {
-      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      capturedHeaders = options?.headers;
       return new AssistantMessageEventStream();
     });
 
@@ -126,7 +126,7 @@ describe("createCopilotAwareStream", () => {
     // Second call should get initiator="agent"
     let capturedHeaders: Record<string, string> | undefined;
     vi.mocked(mockStream).mockImplementationOnce(async (_model, _context, options) => {
-      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      capturedHeaders = options?.headers;
       return new AssistantMessageEventStream();
     });
 
@@ -142,7 +142,7 @@ describe("createCopilotAwareStream", () => {
 
     let capturedHeaders: Record<string, string> | undefined;
     const mockStream: StreamFn = vi.fn().mockImplementation(async (_model, _context, options) => {
-      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      capturedHeaders = options?.headers;
       return new AssistantMessageEventStream();
     });
 

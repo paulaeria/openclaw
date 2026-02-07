@@ -353,6 +353,7 @@ export async function handleDirectiveOnly(params: {
       entry: sessionEntry,
       selection: modelSelection,
       profileOverride,
+      reason: "user-command",
     });
   }
   if (directives.hasQueueDirective && directives.queueReset) {

@@ -53,6 +53,8 @@ export type SessionEntry = {
   authProfileOverride?: string;
   authProfileOverrideSource?: "auto" | "user";
   authProfileOverrideCompactionCount?: number;
+  /** Per-session GitHub Copilot X-Initiator auto-reset threshold (0 = disabled) */
+  copilotThreshold?: number;
   groupActivation?: "mention" | "always";
   groupActivationNeedsSystemIntro?: boolean;
   sendPolicy?: "allow" | "deny";

@@ -607,12 +607,18 @@ export async function runEmbeddedAttempt(
       } else {
         // Wrap with Copilot X-Initiator header injection for github-copilot provider.
         // Force a stable streamFn reference so vitest can reliably mock @mariozechner/pi-ai.
+        const copilotProviderConfig = params.config?.models?.providers?.["github-copilot"];
         const copilotAwareStream = createCopilotAwareStream(
           params.provider,
           activeSession.sessionId,
           copilotInitiatorTracker,
           streamSimple,
-          params.config?.models?.providers?.["github-copilot"],
+          copilotProviderConfig
+            ? {
+                disableInitiatorHeader: copilotProviderConfig.disableInitiatorHeader,
+                agentMessageResetThreshold: copilotProviderConfig.agentMessageResetThreshold,
+              }
+            : undefined,
         );
         activeSession.agent.streamFn = copilotAwareStream;
       }

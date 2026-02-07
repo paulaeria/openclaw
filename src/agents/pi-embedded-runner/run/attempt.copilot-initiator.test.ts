@@ -16,7 +16,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     const mockStreamSimple: StreamFn = vi
       .fn()
       .mockImplementation(async (_model, _context, options) => {
-        capturedHeaders = options?.headers as Record<string, string> | undefined;
+        capturedHeaders = options?.headers;
         return new AssistantMessageEventStream();
       });
 
@@ -70,7 +70,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     // Second call - agent initiator
     let capturedHeaders: Record<string, string> | undefined;
     vi.mocked(mockStreamSimple).mockImplementationOnce(async (_model, _context, options) => {
-      capturedHeaders = options?.headers as Record<string, string> | undefined;
+      capturedHeaders = options?.headers;
       return new AssistantMessageEventStream();
     });
 
@@ -89,7 +89,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     const mockStreamSimple: StreamFn = vi
       .fn()
       .mockImplementation(async (_model, _context, options) => {
-        capturedHeaders = options?.headers as Record<string, string> | undefined;
+        capturedHeaders = options?.headers;
         return new AssistantMessageEventStream();
       });
 
@@ -123,7 +123,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     const mockStreamSimple: StreamFn = vi
       .fn()
       .mockImplementation(async (_model, _context, options) => {
-        capturedHeaders = options?.headers as Record<string, string> | undefined;
+        capturedHeaders = options?.headers;
         return new AssistantMessageEventStream();
       });
 
@@ -181,7 +181,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     // First call for session 1 - should be "user"
     let capturedHeaders1: Record<string, string> | undefined;
     vi.mocked(mockStreamSimple).mockImplementationOnce(async (_model, _context, options) => {
-      capturedHeaders1 = options?.headers as Record<string, string> | undefined;
+      capturedHeaders1 = options?.headers;
       return new AssistantMessageEventStream();
     });
     await copilotAwareStream1(model, context, {});
@@ -189,7 +189,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     // First call for session 2 - should also be "user"
     let capturedHeaders2: Record<string, string> | undefined;
     vi.mocked(mockStreamSimple).mockImplementationOnce(async (_model, _context, options) => {
-      capturedHeaders2 = options?.headers as Record<string, string> | undefined;
+      capturedHeaders2 = options?.headers;
       return new AssistantMessageEventStream();
     });
     await copilotAwareStream2(model, context, {});
@@ -200,7 +200,7 @@ describe("pi-embedded-runner Copilot X-Initiator integration", () => {
     // Second call for session 1 - should be "agent"
     let capturedHeaders3: Record<string, string> | undefined;
     vi.mocked(mockStreamSimple).mockImplementationOnce(async (_model, _context, options) => {
-      capturedHeaders3 = options?.headers as Record<string, string> | undefined;
+      capturedHeaders3 = options?.headers;
       return new AssistantMessageEventStream();
     });
     await copilotAwareStream1(model, context, {});
