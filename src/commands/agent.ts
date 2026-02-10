@@ -44,6 +44,7 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../config/sessions.js";
+import { loadSessionEntry } from "../gateway/session-utils.js";
 import {
   clearAgentRunContext,
   emitAgentEvent,
@@ -60,6 +61,39 @@ import { deliverAgentCommandResult } from "./agent/delivery.js";
 import { resolveAgentRunContext } from "./agent/run-context.js";
 import { updateSessionStoreAfterAgentRun } from "./agent/session-store.js";
 import { resolveSession } from "./agent/session.js";
+
+/**
+ * Resolve the parent session ID for Copilot X-Initiator tracking.
+ * Extracts the parent's sessionId from the spawnedBy session entry.
+ *
+ * @param spawnedBy - The parent session key (e.g., "agent:main")
+ * @param cfg - The OpenClaw config
+ * @returns The parent session ID, or undefined if not found/sharing is disabled
+ */
+function resolveCopilotParentSessionId(
+  spawnedBy: string | null | undefined,
+  cfg: ReturnType<typeof loadConfig>,
+): string | undefined {
+  if (!spawnedBy) {
+    return undefined;
+  }
+  try {
+    const parentEntry = loadSessionEntry(spawnedBy)?.entry;
+    if (!parentEntry?.sessionId) {
+      return undefined;
+    }
+
+    // Check if sharing is enabled
+    const providerConfig = cfg.models?.providers?.["github-copilot"];
+    if (providerConfig?.shareSessionId === false) {
+      return undefined;
+    }
+
+    return parentEntry.sessionId;
+  } catch {
+    return undefined;
+  }
+}
 
 export async function agentCommand(
   opts: AgentCommandOpts,
@@ -413,6 +447,7 @@ export async function agentCommand(
           }
           const authProfileId =
             providerOverride === provider ? sessionEntry?.authProfileOverride : undefined;
+          const copilotParentSessionId = resolveCopilotParentSessionId(spawnedBy, cfg);
           return runEmbeddedPiAgent({
             sessionId,
             sessionKey,
@@ -425,6 +460,7 @@ export async function agentCommand(
             groupChannel: runContext.groupChannel,
             groupSpace: runContext.groupSpace,
             spawnedBy,
+            copilotParentSessionId,
             currentChannelId: runContext.currentChannelId,
             currentThreadTs: runContext.currentThreadTs,
             replyToMode: runContext.replyToMode,

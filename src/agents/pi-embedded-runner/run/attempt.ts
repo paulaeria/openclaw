@@ -617,6 +617,8 @@ export async function runEmbeddedAttempt(
             ? {
                 disableInitiatorHeader: copilotProviderConfig.disableInitiatorHeader,
                 agentMessageResetThreshold: copilotProviderConfig.agentMessageResetThreshold,
+                shareSessionId: copilotProviderConfig.shareSessionId,
+                copilotParentSessionId: params.copilotParentSessionId,
               }
             : undefined,
         );
