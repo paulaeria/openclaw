@@ -88,7 +88,7 @@ const stream = createCopilotAwareStream(
   params.provider,
   params.sessionId,
   copilotInitiatorTracker,
-  originalStreamSimple
+  originalStreamSimple,
 );
 ```
 
@@ -111,19 +111,19 @@ Optional config flag for users who want to disable the optimization:
 // src/config/zod-schema.providers.ts
 githubCopilot: z.object({
   disableInitiatorHeader: z.boolean().optional().default(false),
-})
+});
 ```
 
 ## Error Handling & Edge Cases
 
-| Scenario | Behavior |
-|----------|----------|
-| Provider detection fails | Default to `X-Initiator: user` (safer to count as premium) |
-| Session ID missing | Generate temporary ID: `"temp-${Date.now()}"` |
-| Tracker state grows too large | Auto-cleanup: remove sessions older than 24 hours |
-| Multiple concurrent agents | Thread-safe (Node.js single-threaded, Set-based) |
-| Session retry/retry | Retry does NOT count as new first call (only true user prompts) |
-| Non-Copilot providers | Pass through unchanged, zero overhead |
+| Scenario                      | Behavior                                                        |
+| ----------------------------- | --------------------------------------------------------------- |
+| Provider detection fails      | Default to `X-Initiator: user` (safer to count as premium)      |
+| Session ID missing            | Generate temporary ID: `"temp-${Date.now()}"`                   |
+| Tracker state grows too large | Auto-cleanup: remove sessions older than 24 hours               |
+| Multiple concurrent agents    | Thread-safe (Node.js single-threaded, Set-based)                |
+| Session retry/retry           | Retry does NOT count as new first call (only true user prompts) |
+| Non-Copilot providers         | Pass through unchanged, zero overhead                           |
 
 ## Session Lifecycle
 

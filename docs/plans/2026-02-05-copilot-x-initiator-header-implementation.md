@@ -13,6 +13,7 @@
 ### Task 1: Create CopilotInitiatorTracker class with unit tests
 
 **Files:**
+
 - Create: `src/agents/copilot-initiator-header.ts`
 - Create: `src/agents/copilot-initiator-header.test.ts`
 
@@ -137,6 +138,7 @@ git commit -m "feat: add CopilotInitiatorTracker class with session-based first-
 ### Task 2: Create stream wrapper function with tests
 
 **Files:**
+
 - Modify: `src/agents/copilot-initiator-header.ts`
 - Modify: `src/agents/copilot-initiator-header.test.ts`
 
@@ -161,10 +163,13 @@ describe("createCopilotAwareStream", () => {
       "github-copilot",
       "session-test",
       tracker,
-      mockStream
+      mockStream,
     );
 
-    await wrappedStream({ api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" }, {});
+    await wrappedStream(
+      { api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" },
+      {},
+    );
 
     expect(capturedHeaders["X-Initiator"]).toBe("user");
     expect(mockStream).toHaveBeenCalledTimes(1);
@@ -187,7 +192,7 @@ export function createCopilotAwareStream(
   provider: string,
   sessionId: string,
   tracker: CopilotInitiatorTracker,
-  originalStreamSimple: StreamFn
+  originalStreamSimple: StreamFn,
 ): StreamFn {
   return async function streamWithInitiatorHeader(model, options) {
     const headers = { ...options?.headers };
@@ -223,13 +228,19 @@ it("should inject X-Initiator: agent header for subsequent Copilot calls", async
     "github-copilot",
     "session-test",
     tracker,
-    mockStream
+    mockStream,
   );
 
   // First call
-  await wrappedStream({ api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" }, {});
+  await wrappedStream(
+    { api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" },
+    {},
+  );
   // Second call (tool result)
-  await wrappedStream({ api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" }, {});
+  await wrappedStream(
+    { api: "https://api.github.com", provider: "github-copilot", id: "claude-sonnet-4" },
+    {},
+  );
 
   expect(capturedHeaders["X-Initiator"]).toBe("agent");
   expect(mockStream).toHaveBeenCalledTimes(2);
@@ -253,14 +264,12 @@ it("should not inject header for non-Copilot providers", async () => {
   });
 
   const tracker = new CopilotInitiatorTracker();
-  const wrappedStream = createCopilotAwareStream(
-    "anthropic",
-    "session-test",
-    tracker,
-    mockStream
-  );
+  const wrappedStream = createCopilotAwareStream("anthropic", "session-test", tracker, mockStream);
 
-  await wrappedStream({ api: "https://api.anthropic.com", provider: "anthropic", id: "claude-sonnet-4" }, {});
+  await wrappedStream(
+    { api: "https://api.anthropic.com", provider: "anthropic", id: "claude-sonnet-4" },
+    {},
+  );
 
   expect(capturedHeaders["X-Initiator"]).toBeUndefined();
   expect(mockStream).toHaveBeenCalledTimes(1);
@@ -289,6 +298,7 @@ git commit -m "feat: add createCopilotAwareStream wrapper function with X-Initia
 ### Task 3: Integrate wrapper into pi-embedded-runner
 
 **Files:**
+
 - Modify: `src/agents/pi-embedded-runner/run/attempt.ts`
 - Create: `src/agents/pi-embedded-runner/run/attempt.copilot-initiator.test.ts`
 
@@ -296,12 +306,16 @@ git commit -m "feat: add createCopilotAwareStream wrapper function with X-Initia
 
 ```typescript
 // Add to imports in src/agents/pi-embedded-runner/run/attempt.ts
-import { copilotInitiatorTracker, createCopilotAwareStream } from "../../copilot-initiator-header.js";
+import {
+  copilotInitiatorTracker,
+  createCopilotAwareStream,
+} from "../../copilot-initiator-header.js";
 ```
 
 **Step 2: Locate the streamSimple usage**
 
 Find where `streamSimple` is imported and used. Search for:
+
 ```bash
 grep -n "streamSimple" src/agents/pi-embedded-runner/run/attempt.ts
 ```
@@ -326,13 +340,13 @@ describe("runEmbeddedAttempt - Copilot X-Initiator integration", () => {
       "github-copilot",
       "test-session",
       tracker,
-      mockStreamSimple
+      mockStreamSimple,
     );
 
     // Simulate first call
     await wrappedStream(
       { api: "https://api.github.com", provider: "github-copilot", id: "test-model" },
-      {}
+      {},
     );
 
     expect(mockStreamSimple).toHaveBeenCalledTimes(1);
@@ -361,7 +375,7 @@ const copilotAwareStream = createCopilotAwareStream(
   params.provider,
   params.sessionId,
   copilotInitiatorTracker,
-  originalStreamSimple
+  originalStreamSimple,
 );
 
 // Then use copilotAwareStream instead of streamSimple
@@ -395,6 +409,7 @@ git commit -m "feat: integrate X-Initiator header wrapper into pi-embedded-runne
 ### Task 4: Add config option to disable header injection
 
 **Files:**
+
 - Modify: `src/config/zod-schema.providers.ts`
 - Modify: `src/agents/copilot-initiator-header.ts`
 - Create: `src/agents/copilot-initiator-header.config.test.ts`
@@ -407,7 +422,7 @@ git commit -m "feat: integrate X-Initiator header wrapper into pi-embedded-runne
 githubCopilot: z.object({
   // ... existing fields ...
   disableInitiatorHeader: z.boolean().optional().default(false),
-})
+});
 ```
 
 **Step 2: Pass config to wrapper function**
@@ -421,15 +436,12 @@ export function createCopilotAwareStream(
   sessionId: string,
   tracker: CopilotInitiatorTracker,
   originalStreamSimple: StreamFn,
-  config?: { disableInitiatorHeader?: boolean }
+  config?: { disableInitiatorHeader?: boolean },
 ): StreamFn {
   return async function streamWithInitiatorHeader(model, options) {
     const headers = { ...options?.headers };
 
-    if (
-      provider === "github-copilot" &&
-      !config?.disableInitiatorHeader
-    ) {
+    if (provider === "github-copilot" && !config?.disableInitiatorHeader) {
       const initiator = tracker.getInitiator(sessionId);
       headers["X-Initiator"] = initiator;
     }
@@ -463,10 +475,13 @@ describe("createCopilotAwareStream - config", () => {
       "session-test",
       tracker,
       mockStream,
-      { disableInitiatorHeader: true }
+      { disableInitiatorHeader: true },
     );
 
-    await wrappedStream({ api: "https://api.github.com", provider: "github-copilot", id: "test" }, {});
+    await wrappedStream(
+      { api: "https://api.github.com", provider: "github-copilot", id: "test" },
+      {},
+    );
 
     expect(capturedHeaders["X-Initiator"]).toBeUndefined();
   });
@@ -487,7 +502,7 @@ const copilotAwareStream = createCopilotAwareStream(
   params.sessionId,
   copilotInitiatorTracker,
   originalStreamSimple,
-  params.config?.providers?.githubCopilot  // Pass the config
+  params.config?.providers?.githubCopilot, // Pass the config
 );
 ```
 
@@ -508,6 +523,7 @@ git commit -m "feat: add config option to disable X-Initiator header injection"
 ### Task 5: Add cleanup mechanism for tracker state
 
 **Files:**
+
 - Modify: `src/agents/copilot-initiator-header.ts`
 - Modify: `src/agents/copilot-initiator-header.test.ts`
 
@@ -589,12 +605,13 @@ git commit -m "feat: add session cleanup mechanism to CopilotInitiatorTracker"
 ### Task 6: Update documentation
 
 **Files:**
+
 - Modify: `docs/providers/github-copilot.md`
 - Modify: `docs/concepts/usage-tracking.md` (if relevant)
 
 **Step 1: Add section to GitHub Copilot provider docs**
 
-```markdown
+````markdown
 <!-- docs/providers/github-copilot.md -->
 
 ## Premium Request Optimization
@@ -615,9 +632,11 @@ providers:
   github-copilot:
     disableInitiatorHeader: true
 ```
+````
 
 **Note:** This optimization uses an undocumented GitHub Copilot API feature that is widely adopted across Copilot integrations.
-```
+
+````
 
 **Step 2: Check if usage tracking docs need update**
 
@@ -630,7 +649,7 @@ If it discusses Copilot premium requests, add a note about the optimization.
 ```bash
 git add docs/providers/github-copilot.md docs/concepts/usage-tracking.md
 git commit -m "docs: document X-Initiator header optimization for GitHub Copilot"
-```
+````
 
 ---
 
