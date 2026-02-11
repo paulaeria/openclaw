@@ -3,7 +3,7 @@ import type { ModelChangeReason } from "./model-change-tracking.js";
 import { log } from "./pi-embedded-runner/logger.js";
 
 const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const DEFAULT_THRESHOLD = 25; // Default auto-reset threshold
+const DEFAULT_THRESHOLD = 50; // Default auto-reset threshold
 
 export class CopilotInitiatorTracker {
   #firstCallMade = new Set<string>();
