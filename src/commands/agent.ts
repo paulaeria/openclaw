@@ -21,7 +21,6 @@ import {
   resolveConfiguredModelRef,
   resolveThinkingDefault,
 } from "../agents/model-selection.js";
-import { log } from "../agents/pi-embedded-runner/logger.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { buildWorkspaceSkillSnapshot } from "../agents/skills.js";
 import { getSkillsSnapshotVersion } from "../agents/skills/refresh.js";
@@ -90,9 +89,6 @@ function resolveCopilotParentSessionId(
       return undefined;
     }
 
-    log.debug(
-      `copilot x-initiator: parent session resolved (spawnedBy=${spawnedBy}, parentSessionId=${parentEntry.sessionId})`,
-    );
     return parentEntry.sessionId;
   } catch {
     return undefined;

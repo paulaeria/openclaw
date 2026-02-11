@@ -170,9 +170,6 @@ export function createCopilotAwareStream(
     config?.copilotParentSessionId
   ) {
     tracker.registerChildSession(sessionId, config.copilotParentSessionId);
-    log.debug(
-      `copilot x-initiator: child registered (child=${sessionId}, parent=${config.copilotParentSessionId})`,
-    );
   }
 
   return async function streamWithInitiatorHeader(model, context, options) {
@@ -183,7 +180,6 @@ export function createCopilotAwareStream(
       const globalThreshold = config?.agentMessageResetThreshold;
       const initiator = tracker.getInitiator(sessionId, sessionThreshold, globalThreshold);
       headers["X-Initiator"] = initiator;
-      log.debug(`copilot x-initiator: sessionId=${sessionId} initiator=${initiator}`);
     }
 
     return originalStreamSimple(model, context, { ...options, headers });

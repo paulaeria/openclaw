@@ -620,7 +620,9 @@ export async function runEmbeddedAttempt(
                 shareSessionId: copilotProviderConfig.shareSessionId,
                 copilotParentSessionId: params.copilotParentSessionId,
               }
-            : undefined,
+            : {
+                copilotParentSessionId: params.copilotParentSessionId,
+              },
         );
         activeSession.agent.streamFn = copilotAwareStream;
       }
