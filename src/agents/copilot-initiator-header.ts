@@ -75,6 +75,9 @@ export class CopilotInitiatorTracker {
         return "user";
       }
 
+      log.debug(
+        `copilot x-initiator: count=${count}/${threshold} (sessionId=${sessionId}, effective=${effectiveSessionId}, initiator=agent)`,
+      );
       return "agent";
     }
 
