@@ -89,6 +89,9 @@ function resolveCopilotParentSessionId(
       return undefined;
     }
 
+    log.debug(
+      `copilot x-initiator: parent session resolved (spawnedBy=${spawnedBy}, parentSessionId=${parentEntry.sessionId})`,
+    );
     return parentEntry.sessionId;
   } catch {
     return undefined;

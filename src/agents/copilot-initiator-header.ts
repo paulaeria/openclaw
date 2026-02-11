@@ -149,6 +149,9 @@ export function createCopilotAwareStream(
     config?.copilotParentSessionId
   ) {
     tracker.registerChildSession(sessionId, config.copilotParentSessionId);
+    log.debug(
+      `copilot x-initiator: child registered (child=${sessionId}, parent=${config.copilotParentSessionId})`,
+    );
   }
 
   return async function streamWithInitiatorHeader(model, context, options) {
