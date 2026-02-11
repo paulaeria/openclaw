@@ -10,10 +10,15 @@ export class CopilotInitiatorTracker {
   #sessionTimestamps = new Map<string, number>();
   #agentMessageCount = new Map<string, number>();
   #parentSessionMap = new Map<string, string>(); // child → parent mapping
+  // Track which sessions have directly made calls (not inherited from parent)
+  #directCalls = new Set<string>();
 
   /**
    * Register a child session with its parent for Copilot tracking.
    * Child sessions will use the parent's sessionId for X-Initiator logic.
+   *
+   * NOTE: Does not add child to #firstCallMade here. The child will be added
+   * when it makes its first call (which will check the parent's #directCalls status).
    *
    * @param childSessionId - The child's session ID
    * @param parentSessionId - The parent's session ID to track against
@@ -73,10 +78,24 @@ export class CopilotInitiatorTracker {
       return "agent";
     }
 
+    // Check if this is a child whose parent has made a direct call
+    // If so, add to #firstCallMade so subsequent calls continue parent's session
+    if (sessionId !== effectiveSessionId && this.#directCalls.has(effectiveSessionId)) {
+      this.#firstCallMade.add(effectiveSessionId);
+      this.#sessionTimestamps.set(effectiveSessionId, Date.now());
+      this.#agentMessageCount.set(effectiveSessionId, 0);
+      // Continue with incrementing count (not a first call for the user)
+      const count = 1;
+      this.#agentMessageCount.set(effectiveSessionId, count);
+      return "agent";
+    }
+
     // First call - initialize tracking with effective session ID
     this.#firstCallMade.add(effectiveSessionId);
     this.#sessionTimestamps.set(effectiveSessionId, Date.now());
     this.#agentMessageCount.set(effectiveSessionId, 0);
+    // Mark this session as having made a direct call
+    this.#directCalls.add(effectiveSessionId);
     return "user";
   }
 
@@ -89,6 +108,7 @@ export class CopilotInitiatorTracker {
     this.#firstCallMade.delete(effectiveSessionId);
     this.#sessionTimestamps.delete(effectiveSessionId);
     this.#agentMessageCount.delete(effectiveSessionId);
+    this.#directCalls.delete(effectiveSessionId);
   }
 
   /**
@@ -122,6 +142,7 @@ export class CopilotInitiatorTracker {
         this.#firstCallMade.delete(sessionId);
         this.#sessionTimestamps.delete(sessionId);
         this.#agentMessageCount.delete(sessionId);
+        this.#directCalls.delete(sessionId);
       }
     }
   }
