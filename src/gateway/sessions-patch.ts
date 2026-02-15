@@ -258,6 +258,7 @@ export async function applySessionsPatchToStore(params: {
           model: resolvedDefault.model,
           isDefault: true,
         },
+        reason: "user-command",
       });
     } else if (raw !== undefined) {
       const trimmed = String(raw).trim();
@@ -291,6 +292,7 @@ export async function applySessionsPatchToStore(params: {
           model: resolved.ref.model,
           isDefault,
         },
+        reason: "user-command",
       });
     }
   }

@@ -63,6 +63,28 @@ openclaw models set github-copilot/gpt-4o
 }
 ```
 
+## Premium Request Optimization
+
+OpenClaw automatically optimizes your GitHub Copilot premium quota usage by injecting the `X-Initiator` header on API requests. This ensures that:
+
+- **User-initiated requests** (the first message in a conversation) count as 1 premium request
+- **Agent/tool-initiated requests** (tool results, follow-up calls, subagent invocations) are exempt from quota
+
+This means a typical chat session with multiple tool calls only consumes 1 premium request instead of counting every API call separately.
+
+### Disabling the Optimization
+
+If you need to disable this optimization for any reason, add to your config:
+
+```yaml
+models:
+  providers:
+    github-copilot:
+      disableInitiatorHeader: true
+```
+
+**Note:** This optimization uses an undocumented GitHub Copilot API feature that is widely adopted across Copilot integrations.
+
 ## Notes
 
 - Requires an interactive TTY; run it directly in a terminal.

@@ -27,6 +27,10 @@ import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
+import {
+  copilotInitiatorTracker,
+  createCopilotAwareStream,
+} from "../../copilot-initiator-header.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
@@ -601,8 +605,26 @@ export async function runEmbeddedAttempt(
         const ollamaBaseUrl = modelBaseUrl || providerBaseUrl || OLLAMA_NATIVE_BASE_URL;
         activeSession.agent.streamFn = createOllamaStreamFn(ollamaBaseUrl);
       } else {
+        // Wrap with Copilot X-Initiator header injection for github-copilot provider.
         // Force a stable streamFn reference so vitest can reliably mock @mariozechner/pi-ai.
-        activeSession.agent.streamFn = streamSimple;
+        const copilotProviderConfig = params.config?.models?.providers?.["github-copilot"];
+        const copilotAwareStream = createCopilotAwareStream(
+          params.provider,
+          activeSession.sessionId,
+          copilotInitiatorTracker,
+          streamSimple,
+          copilotProviderConfig
+            ? {
+                disableInitiatorHeader: copilotProviderConfig.disableInitiatorHeader,
+                agentMessageResetThreshold: copilotProviderConfig.agentMessageResetThreshold,
+                shareSessionId: copilotProviderConfig.shareSessionId,
+                copilotParentSessionId: params.copilotParentSessionId,
+              }
+            : {
+                copilotParentSessionId: params.copilotParentSessionId,
+              },
+        );
+        activeSession.agent.streamFn = copilotAwareStream;
       }
 
       applyExtraParamsToAgent(

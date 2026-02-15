@@ -71,6 +71,7 @@ function applySelectionToSession(params: {
   const { updated } = applyModelOverrideToSessionEntry({
     entry: sessionEntry,
     selection,
+    reason: "config-default",
   });
   if (!updated) {
     return;

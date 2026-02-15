@@ -66,6 +66,11 @@ export const ModelProviderSchema = z
     headers: z.record(z.string(), z.string()).optional(),
     authHeader: z.boolean().optional(),
     models: z.array(ModelDefinitionSchema),
+    disableInitiatorHeader: z.boolean().optional().default(false),
+    /** Auto-reset X-Initiator to "user" after N agent calls (0 = disabled, default: 50) */
+    agentMessageResetThreshold: z.number().int().nonnegative().optional().default(50),
+    /** Share parent session ID for X-Initiator tracking (subagents use parent's quota state) */
+    shareSessionId: z.boolean().optional().default(true),
   })
   .strict();
 
