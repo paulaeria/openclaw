@@ -26,7 +26,7 @@ import {
 const DEFAULT_PROMPT = "Describe the image.";
 const ANTHROPIC_IMAGE_PRIMARY = "anthropic/claude-opus-4-6";
 const ANTHROPIC_IMAGE_FALLBACK = "anthropic/claude-opus-4-5";
-const DEFAULT_MAX_IMAGES = 5;
+const DEFAULT_MAX_IMAGES = 20;
 
 export const __testing = {
   decodeDataUrl,
@@ -358,8 +358,8 @@ export function createImageTool(options?: {
   // If model has native vision, images in the prompt are auto-injected
   // so this tool is only needed when image wasn't provided in the prompt
   const description = options?.modelHasVision
-    ? "Analyze one or more images with a vision model. Pass a single image path/URL or an array of up to 5. Only use this tool when images were NOT already provided in the user's message. Images mentioned in the prompt are automatically visible to you."
-    : "Analyze one or more images with the configured image model (agents.defaults.imageModel). Pass a single image path/URL or an array of up to 5. Provide a prompt describing what to analyze.";
+    ? "Analyze one or more images with a vision model. Pass a single image path/URL or an array of up to 20. Only use this tool when images were NOT already provided in the user's message. Images mentioned in the prompt are automatically visible to you."
+    : "Analyze one or more images with the configured image model (agents.defaults.imageModel). Pass a single image path/URL or an array of up to 20. Provide a prompt describing what to analyze.";
 
   const localRoots = (() => {
     const roots = getDefaultLocalRoots();
