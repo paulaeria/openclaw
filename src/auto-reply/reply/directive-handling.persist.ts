@@ -169,6 +169,7 @@ export async function persistInlineDirectives(params: {
               isDefault,
             },
             profileOverride,
+            reason: "unknown",
           });
           provider = resolved.ref.provider;
           model = resolved.ref.model;

@@ -1,4 +1,6 @@
+import type { ModelChangeReason } from "../agents/model-change-tracking.js";
 import type { SessionEntry } from "../config/sessions.js";
+import { copilotInitiatorTracker } from "../agents/copilot-initiator-header.js";
 
 export type ModelOverrideSelection = {
   provider: string;
@@ -11,8 +13,10 @@ export function applyModelOverrideToSessionEntry(params: {
   selection: ModelOverrideSelection;
   profileOverride?: string;
   profileOverrideSource?: "auto" | "user";
+  /** Reason for model change - determines if X-Initiator tracker resets */
+  reason?: ModelChangeReason;
 }): { updated: boolean } {
-  const { entry, selection, profileOverride } = params;
+  const { entry, selection, profileOverride, reason } = params;
   const profileOverrideSource = params.profileOverrideSource ?? "user";
   let updated = false;
 
@@ -70,6 +74,11 @@ export function applyModelOverrideToSessionEntry(params: {
     delete entry.fallbackNoticeActiveModel;
     delete entry.fallbackNoticeReason;
     entry.updatedAt = Date.now();
+
+    // Reset X-Initiator tracker on user-initiated model changes
+    if (reason === "user-command") {
+      copilotInitiatorTracker.onModelChanged(entry.sessionId, reason);
+    }
   }
 
   return { updated };

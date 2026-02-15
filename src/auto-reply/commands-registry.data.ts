@@ -474,6 +474,20 @@ function buildChatCommands(): ChatCommandDefinition[] {
       ],
     }),
     defineChatCommand({
+      key: "copilot-threshold",
+      description: "Configure GitHub Copilot X-Initiator auto-reset threshold.",
+      textAlias: "/copilot-threshold",
+      scope: "text",
+      category: "options",
+      args: [
+        {
+          name: "value",
+          description: "enable, disable, or number (0-500)",
+          type: "string",
+        },
+      ],
+    }),
+    defineChatCommand({
       key: "think",
       nativeName: "think",
       description: "Set thinking level.",

@@ -283,6 +283,7 @@ export function createSessionStatusTool(opts?: {
                   model: selection.model,
                   isDefault: selection.isDefault,
                 },
+          reason: "user-command",
         });
         if (applied.updated) {
           store[resolved.key] = nextEntry;

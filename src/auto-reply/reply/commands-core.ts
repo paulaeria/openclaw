@@ -9,6 +9,7 @@ import { handleApproveCommand } from "./commands-approve.js";
 import { handleBashCommand } from "./commands-bash.js";
 import { handleCompactCommand } from "./commands-compact.js";
 import { handleConfigCommand, handleDebugCommand } from "./commands-config.js";
+import { handleCopilotThresholdCommand } from "./commands-copilot-threshold.js";
 import {
   handleCommandsListCommand,
   handleContextCommand,
@@ -61,6 +62,7 @@ export async function handleCommands(params: HandleCommandsParams): Promise<Comm
       handleConfigCommand,
       handleDebugCommand,
       handleModelsCommand,
+      handleCopilotThresholdCommand,
       handleStopCommand,
       handleCompactCommand,
       handleAbortTrigger,

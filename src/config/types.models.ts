@@ -49,6 +49,11 @@ export type ModelProviderConfig = {
   headers?: Record<string, string>;
   authHeader?: boolean;
   models: ModelDefinitionConfig[];
+  disableInitiatorHeader?: boolean;
+  /** Auto-reset X-Initiator to "user" after N agent calls (0 = disabled, default: 50) */
+  agentMessageResetThreshold?: number;
+  /** Share parent session ID for X-Initiator tracking (subagents use parent's quota state) */
+  shareSessionId?: boolean;
 };
 
 export type BedrockDiscoveryConfig = {

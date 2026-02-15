@@ -45,6 +45,7 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../config/sessions.js";
+import { loadSessionEntry } from "../gateway/session-utils.js";
 import {
   clearAgentRunContext,
   emitAgentEvent,
@@ -102,6 +103,7 @@ function runAgentAttempt(params: {
   opts: AgentCommandOpts;
   runContext: ReturnType<typeof resolveAgentRunContext>;
   spawnedBy: string | undefined;
+  copilotParentSessionId: string | undefined;
   messageChannel: ReturnType<typeof resolveMessageChannel>;
   skillsSnapshot: ReturnType<typeof buildWorkspaceSkillSnapshot> | undefined;
   resolvedVerboseLevel: VerboseLevel | undefined;
@@ -151,6 +153,7 @@ function runAgentAttempt(params: {
     groupChannel: params.runContext.groupChannel,
     groupSpace: params.runContext.groupSpace,
     spawnedBy: params.spawnedBy,
+    copilotParentSessionId: params.copilotParentSessionId,
     currentChannelId: params.runContext.currentChannelId,
     currentThreadTs: params.runContext.currentThreadTs,
     replyToMode: params.runContext.replyToMode,
@@ -179,6 +182,39 @@ function runAgentAttempt(params: {
     agentDir: params.agentDir,
     onAgentEvent: params.onAgentEvent,
   });
+}
+
+/**
+ * Resolve the parent session ID for Copilot X-Initiator tracking.
+ * Extracts the parent's sessionId from the spawnedBy session entry.
+ *
+ * @param spawnedBy - The parent session key (e.g., "agent:main")
+ * @param cfg - The OpenClaw config
+ * @returns The parent session ID, or undefined if not found/sharing is disabled
+ */
+function resolveCopilotParentSessionId(
+  spawnedBy: string | null | undefined,
+  cfg: ReturnType<typeof loadConfig>,
+): string | undefined {
+  if (!spawnedBy) {
+    return undefined;
+  }
+  try {
+    const parentEntry = loadSessionEntry(spawnedBy)?.entry;
+    if (!parentEntry?.sessionId) {
+      return undefined;
+    }
+
+    // Check if sharing is enabled
+    const providerConfig = cfg.models?.providers?.["github-copilot"];
+    if (providerConfig?.shareSessionId === false) {
+      return undefined;
+    }
+
+    return parentEntry.sessionId;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function agentCommand(
@@ -427,6 +463,7 @@ export async function agentCommand(
           const { updated } = applyModelOverrideToSessionEntry({
             entry,
             selection: { provider: defaultProvider, model: defaultModel, isDefault: true },
+            reason: "user-command",
           });
           if (updated) {
             await persistSessionEntry({
@@ -542,6 +579,7 @@ export async function agentCommand(
         run: (providerOverride, modelOverride) => {
           const isFallbackRetry = fallbackAttemptIndex > 0;
           fallbackAttemptIndex += 1;
+          const copilotParentSessionId = resolveCopilotParentSessionId(spawnedBy, cfg);
           return runAgentAttempt({
             providerOverride,
             modelOverride,
@@ -550,6 +588,7 @@ export async function agentCommand(
             sessionId,
             sessionKey,
             sessionAgentId,
+            copilotParentSessionId,
             sessionFile,
             workspaceDir,
             body,

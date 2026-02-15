@@ -38,6 +38,8 @@ export type RunEmbeddedPiAgentParams = {
   groupSpace?: string | null;
   /** Parent session key for subagent policy inheritance. */
   spawnedBy?: string | null;
+  /** Parent session ID for Copilot X-Initiator tracking (subagents inherit parent's quota state). */
+  copilotParentSessionId?: string;
   senderId?: string | null;
   senderName?: string | null;
   senderUsername?: string | null;
